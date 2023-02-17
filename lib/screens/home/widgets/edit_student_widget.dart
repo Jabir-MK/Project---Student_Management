@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:localacademy/database/functions/db_functons.dart';
 import 'package:localacademy/database/model/student_data_model.dart';
 
 class EditStudentWidget extends StatefulWidget {
@@ -12,15 +11,16 @@ class EditStudentWidget extends StatefulWidget {
   final String image;
   final int index;
 
-  const EditStudentWidget(
-      {super.key,
-      required this.name,
-      required this.age,
-      required this.mobileNumber,
-      required this.course,
-      required this.image,
-      required this.index,
-      required String photo});
+  const EditStudentWidget({
+    super.key,
+    required this.name,
+    required this.age,
+    required this.mobileNumber,
+    required this.course,
+    required this.image,
+    required this.index,
+    required String photo,
+  });
 
   @override
   State<EditStudentWidget> createState() => _EditStudentWidgetState();

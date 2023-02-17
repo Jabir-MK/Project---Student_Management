@@ -4,23 +4,20 @@ import 'package:localacademy/screens/home/widgets/add_student_widget.dart';
 import 'package:localacademy/screens/home/widgets/list_student_widget.dart';
 import 'package:localacademy/screens/home/widgets/search_students.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    getAllStudents();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   getAllStudents();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    getAllStudents();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      // getAllStudents();
+    });
     return Scaffold(
       backgroundColor: Colors.blue.shade100,
       appBar: AppBar(

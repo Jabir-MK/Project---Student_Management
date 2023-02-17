@@ -1,29 +1,24 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:localacademy/database/functions/db_functons.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:localacademy/database/model/student_data_model.dart';
+import 'package:localacademy/controller/controller.dart';
+import 'package:provider/provider.dart';
 
-class AddStudentWidget extends StatefulWidget {
+class AddStudentWidget extends StatelessWidget {
   const AddStudentWidget({super.key});
 
-  @override
-  State<AddStudentWidget> createState() => _AddStudentWidgetState();
-}
+  // final TextEditingController _nameController = TextEditingController();
+  // final TextEditingController _ageController = TextEditingController();
+  // final TextEditingController _mobileNumberController = TextEditingController();
+  // final TextEditingController _courseController = TextEditingController();
 
-class _AddStudentWidgetState extends State<AddStudentWidget> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _mobileNumberController = TextEditingController();
-  final TextEditingController _courseController = TextEditingController();
+  // bool imageAlert = false;
 
-  bool imageAlert = false;
-
-  final _formKey = GlobalKey<FormState>();
+  // final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
+    final providerController = Provider.of<ControllerDB>(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -40,13 +35,13 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SingleChildScrollView(
             child: Form(
-              key: _formKey,
+              key: providerController.formKey,
               child: Column(
                 children: [
                   const SizedBox(
                     height: 20,
                   ),
-                  _photo?.path == null
+                  providerController.uPhoto?.path == null
                       ? const CircleAvatar(
                           radius: 125,
                           backgroundImage:
@@ -55,7 +50,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                       : CircleAvatar(
                           backgroundImage: FileImage(
                             File(
-                              _photo!.path,
+                              providerController.uPhoto!.path,
                             ),
                           ),
                           radius: 60,
@@ -69,7 +64,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                           elevation: 10,
                         ),
                         onPressed: () {
-                          getPhoto();
+                          providerController.getPhoto();
                         },
                         icon: const Icon(
                           Icons.image_outlined,
@@ -82,7 +77,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: _nameController,
+                    controller: providerController.nameController,
                     keyboardType: TextInputType.name,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -98,7 +93,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: _ageController,
+                    controller: providerController.ageController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -114,7 +109,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: _mobileNumberController,
+                    controller: providerController.mobileNumberController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -132,7 +127,7 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: _courseController,
+                    controller: providerController.courseController,
                     keyboardType: TextInputType.name,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -149,10 +144,10 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        addStudentButtonClick();
+                      if (providerController.formKey.currentState!.validate()) {
+                        providerController.addStudentButtonClick(context);
                       } else {
-                        imageAlert = true;
+                        providerController.imageAlert = true;
                       }
                     },
                     icon: const Icon(Icons.person_add),
@@ -167,52 +162,52 @@ class _AddStudentWidgetState extends State<AddStudentWidget> {
     );
   }
 
-  Future<void> addStudentButtonClick() async {
-    final name = _nameController.text.trim();
-    final age = _ageController.text.trim();
-    final mobileNUmber = _mobileNumberController.text.trim();
-    final course = _courseController.text.trim();
+  // Future<void> addStudentButtonClick() async {
+  //   final name = _nameController.text.trim();
+  //   final age = _ageController.text.trim();
+  //   final mobileNUmber = _mobileNumberController.text.trim();
+  //   final course = _courseController.text.trim();
 
-    if (name.isEmpty ||
-        age.isEmpty ||
-        mobileNUmber.isEmpty ||
-        course.isEmpty ||
-        _photo!.path.isEmpty) {
-      return;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(20),
-          content: Text("Student Added Successfully"),
-        ),
-      );
-    }
+  //   if (name.isEmpty ||
+  //       age.isEmpty ||
+  //       mobileNUmber.isEmpty ||
+  //       course.isEmpty ||
+  //       _photo!.path.isEmpty) {
+  //     return;
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         backgroundColor: Colors.green,
+  //         behavior: SnackBarBehavior.floating,
+  //         margin: EdgeInsets.all(20),
+  //         content: Text("Student Added Successfully"),
+  //       ),
+  //     );
+  //   }
 
-    final student = StudentModel(
-      name: name,
-      age: age,
-      mobileNumber: mobileNUmber,
-      course: course,
-      photo: _photo!.path,
-    );
-    addStudent(student);
-    Navigator.of(context).pop();
-  }
+  //   final student = StudentModel(
+  //     name: name,
+  //     age: age,
+  //     mobileNumber: mobileNUmber,
+  //     course: course,
+  //     photo: _photo!.path,
+  //   );
+  //   addStudent(student);
+  //   Navigator.of(context).pop();
+  // }
 
-  File? _photo;
-  Future<void> getPhoto() async {
-    final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (photo == null) {
-      return;
-    } else {
-      final photoTemp = File(photo.path);
-      setState(
-        () {
-          _photo = photoTemp;
-        },
-      );
-    }
-  }
+  // File? _photo;
+  // Future<void> getPhoto() async {
+  //   final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   if (photo == null) {
+  //     return;
+  //   } else {
+  //     final photoTemp = File(photo.path);
+  //     setState(
+  //       () {
+  //         _photo = photoTemp;
+  //       },
+  //     );
+  //   }
+  // }
 }
