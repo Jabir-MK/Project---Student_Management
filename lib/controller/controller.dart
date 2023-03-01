@@ -1,99 +1,83 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:localacademy/database/functions/db_functons.dart';
 import 'package:localacademy/database/model/student_data_model.dart';
+import 'package:provider/provider.dart';
 
-class ControllerDB with ChangeNotifier {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController mobileNumberController = TextEditingController();
-  final TextEditingController courseController = TextEditingController();
+class ProviderStudent with ChangeNotifier {
+  final List<StudentModel> studentList = DBFunctions.studentList;
 
-  bool imageAlert = false;
-
-  final formKey = GlobalKey<FormState>();
-  // ----------------------------------------------------
   File? uPhoto;
-
-  // ====================================================
-
-  List<StudentModel> studentList = [];
-
-  Future<void> addStudent(StudentModel value) async {
-    final studentDB = await Hive.openBox<StudentModel>('student_db');
-    final ids = await studentDB.add(value);
-    value.id = ids;
-    studentList.add(value);
-    notifyListeners();
-    getAllStudents();
-  }
-
-  Future<void> getAllStudents() async {
-    final studentDB = await Hive.openBox<StudentModel>('student_db');
-    studentList.clear();
-    studentList.addAll(studentDB.values);
-    notifyListeners();
-  }
-
-  Future<void> deleteStudent(index) async {
-    final studentDB = await Hive.openBox<StudentModel>('student_db');
-    await studentDB.deleteAt(index);
-    getAllStudents();
-  }
-
-  Future<void> editStudent(int id, StudentModel value) async {
-    final dataBaseStudent = await Hive.openBox<StudentModel>('student_db');
-    dataBaseStudent.putAt(id, value);
-    getAllStudents();
-  }
-
-  // -----------------------------------------------------------------------
-  Future<void> addStudentButtonClick(context) async {
-    final name = nameController.text.trim();
-    final age = ageController.text.trim();
-    final mobileNUmber = mobileNumberController.text.trim();
-    final course = courseController.text.trim();
-
-    if (name.isEmpty ||
-        age.isEmpty ||
-        mobileNUmber.isEmpty ||
-        course.isEmpty ||
-        uPhoto!.path.isEmpty) {
-      return;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(20),
-          content: Text("Student Added Successfully"),
-        ),
-      );
-    }
-
-    final student = StudentModel(
-      name: name,
-      age: age,
-      mobileNumber: mobileNUmber,
-      course: course,
-      photo: uPhoto!.path,
-    );
-    addStudent(student);
-    Navigator.of(context).pop();
-  }
-
-  // -----------------------------------------------------
   Future<void> getPhoto() async {
     final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (photo == null) {
       return;
     } else {
       final photoTemp = File(photo.path);
-
       uPhoto = photoTemp;
-      notifyListeners();
     }
+    notifyListeners();
+  }
+
+  List<StudentModel> foundUsers = [];
+  Future<void> getAllStudents() async {
+    final students = await DBFunctions().getAllStudents();
+    foundUsers = students;
+    notifyListeners();
+  }
+
+  void addStudent(data) {
+    foundUsers.clear();
+    foundUsers.addAll(data);
+    notifyListeners();
+  }
+
+  void runFilter(String enteredKeyWord) {
+    List<StudentModel> results = [];
+    if (enteredKeyWord.isEmpty) {
+      results = studentList;
+    } else {
+      results = studentList
+          .where((element) =>
+              element.name.toLowerCase().contains(enteredKeyWord.toLowerCase()))
+          .toList();
+    }
+    foundUsers = results;
+    notifyListeners();
+  }
+
+  static deleteItem(BuildContext context, id) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: const Text('Are you sure to delete this ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Provider.of<DBFunctions>(context, listen: false)
+                    .deleteStudent(id);
+                Provider.of<ProviderStudent>(context, listen: false)
+                    .getAllStudents();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Deleted Successfully'),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+              child: const Text('Yes'),
+            )
+          ],
+        );
+      },
+    );
   }
 }

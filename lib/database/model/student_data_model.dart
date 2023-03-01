@@ -4,7 +4,7 @@ part 'student_data_model.g.dart';
 @HiveType(typeId: 1)
 class StudentModel {
   @HiveField(0)
-  int? id;
+  final String id;
 
   @HiveField(1)
   final String name;
@@ -21,11 +21,12 @@ class StudentModel {
   @HiveField(5)
   final String photo;
 
-  StudentModel(
-      {required this.name,
-      required this.age,
-      required this.mobileNumber,
-      required this.course,
-      required this.photo,
-      this.id});
+  StudentModel({
+    required this.name,
+    required this.age,
+    required this.mobileNumber,
+    required this.course,
+    required this.photo,
+    required this.id,
+  });
 }

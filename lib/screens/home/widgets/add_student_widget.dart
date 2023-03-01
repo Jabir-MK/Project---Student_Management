@@ -1,24 +1,36 @@
+// ignore_for_file: must_be_immutable
+
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:localacademy/controller/controller.dart';
+import 'package:localacademy/database/functions/db_functons.dart';
+import 'package:localacademy/database/model/student_data_model.dart';
 import 'package:provider/provider.dart';
 
 class AddStudentWidget extends StatelessWidget {
-  const AddStudentWidget({super.key});
+  AddStudentWidget({super.key});
 
-  // final TextEditingController _nameController = TextEditingController();
-  // final TextEditingController _ageController = TextEditingController();
-  // final TextEditingController _mobileNumberController = TextEditingController();
-  // final TextEditingController _courseController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _courseController = TextEditingController();
 
-  // bool imageAlert = false;
+  bool imageAlert = false;
 
-  // final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    final providerController = Provider.of<ControllerDB>(context);
+    final studentProvider =
+        Provider.of<ProviderStudent>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        studentProvider.uPhoto = null;
+      },
+    );
+    log('rebuild screen');
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -35,26 +47,37 @@ class AddStudentWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SingleChildScrollView(
             child: Form(
-              key: providerController.formKey,
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 children: [
                   const SizedBox(
                     height: 20,
                   ),
-                  providerController.uPhoto?.path == null
-                      ? const CircleAvatar(
-                          radius: 125,
-                          backgroundImage:
-                              AssetImage('assets/images/add_image.png'),
-                        )
-                      : CircleAvatar(
-                          backgroundImage: FileImage(
-                            File(
-                              providerController.uPhoto!.path,
-                            ),
-                          ),
-                          radius: 60,
+                  Consumer<ProviderStudent>(
+                    builder: (context, value, Widget? child) {
+                      log('rebuild image');
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 25),
+                          child: value.uPhoto == null
+                              ? const CircleAvatar(
+                                  radius: 125,
+                                  backgroundImage:
+                                      AssetImage('assets/images/add_image.png'),
+                                )
+                              : CircleAvatar(
+                                  backgroundImage: FileImage(
+                                    File(
+                                      value.uPhoto!.path,
+                                    ),
+                                  ),
+                                  radius: 60,
+                                ),
                         ),
+                      );
+                    },
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -64,7 +87,7 @@ class AddStudentWidget extends StatelessWidget {
                           elevation: 10,
                         ),
                         onPressed: () {
-                          providerController.getPhoto();
+                          studentProvider.getPhoto();
                         },
                         icon: const Icon(
                           Icons.image_outlined,
@@ -77,7 +100,7 @@ class AddStudentWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: providerController.nameController,
+                    controller: _nameController,
                     keyboardType: TextInputType.name,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -93,7 +116,7 @@ class AddStudentWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: providerController.ageController,
+                    controller: _ageController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -109,7 +132,7 @@ class AddStudentWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: providerController.mobileNumberController,
+                    controller: _mobileNumberController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -127,7 +150,7 @@ class AddStudentWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    controller: providerController.courseController,
+                    controller: _courseController,
                     keyboardType: TextInputType.name,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
@@ -144,10 +167,12 @@ class AddStudentWidget extends StatelessWidget {
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () {
-                      if (providerController.formKey.currentState!.validate()) {
-                        providerController.addStudentButtonClick(context);
+                      if (_formKey.currentState!.validate() &&
+                          studentProvider.uPhoto != null) {
+                        addStudentButtonClick(context);
+                        Navigator.of(context).pop();
                       } else {
-                        providerController.imageAlert = true;
+                        imageAlert = true;
                       }
                     },
                     icon: const Icon(Icons.person_add),
@@ -162,52 +187,41 @@ class AddStudentWidget extends StatelessWidget {
     );
   }
 
-  // Future<void> addStudentButtonClick() async {
-  //   final name = _nameController.text.trim();
-  //   final age = _ageController.text.trim();
-  //   final mobileNUmber = _mobileNumberController.text.trim();
-  //   final course = _courseController.text.trim();
+  Future<void> addStudentButtonClick(ctx) async {
+    final name = _nameController.text.trim();
+    final age = _ageController.text.trim();
+    final mobileNUmber = _mobileNumberController.text.trim();
+    final course = _courseController.text.trim();
 
-  //   if (name.isEmpty ||
-  //       age.isEmpty ||
-  //       mobileNUmber.isEmpty ||
-  //       course.isEmpty ||
-  //       _photo!.path.isEmpty) {
-  //     return;
-  //   } else {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         backgroundColor: Colors.green,
-  //         behavior: SnackBarBehavior.floating,
-  //         margin: EdgeInsets.all(20),
-  //         content: Text("Student Added Successfully"),
-  //       ),
-  //     );
-  //   }
+    if (name.isEmpty ||
+        age.isEmpty ||
+        mobileNUmber.isEmpty ||
+        course.isEmpty ||
+        Provider.of<ProviderStudent>(ctx, listen: false).uPhoto!.path.isEmpty) {
+      return;
+    } else {
+      Provider.of<ProviderStudent>(ctx, listen: false).getAllStudents();
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(20),
+          content: Text("Student Added Successfully"),
+        ),
+      );
+    }
 
-  //   final student = StudentModel(
-  //     name: name,
-  //     age: age,
-  //     mobileNumber: mobileNUmber,
-  //     course: course,
-  //     photo: _photo!.path,
-  //   );
-  //   addStudent(student);
-  //   Navigator.of(context).pop();
-  // }
-
-  // File? _photo;
-  // Future<void> getPhoto() async {
-  //   final photo = await ImagePicker().pickImage(source: ImageSource.gallery);
-  //   if (photo == null) {
-  //     return;
-  //   } else {
-  //     final photoTemp = File(photo.path);
-  //     setState(
-  //       () {
-  //         _photo = photoTemp;
-  //       },
-  //     );
-  //   }
-  // }
+    final student = StudentModel(
+      name: name,
+      age: age,
+      mobileNumber: mobileNUmber,
+      course: course,
+      photo: Provider.of<ProviderStudent>(ctx, listen: false).uPhoto!.path,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    );
+    log(student.name.toString());
+    log('Ontap function');
+    Provider.of<DBFunctions>(ctx, listen: false).addStudent(student);
+    Provider.of<DBFunctions>(ctx, listen: false).getAllStudents();
+  }
 }

@@ -1,35 +1,35 @@
-// // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:localacademy/database/model/student_data_model.dart';
 
-// import 'package:flutter/cupertino.dart';
-// import 'package:hive_flutter/hive_flutter.dart';
-// import 'package:localacademy/database/model/student_data_model.dart';
+class DBFunctions with ChangeNotifier {
+  static List<StudentModel> studentList = [];
+  Future<void> addStudent(StudentModel value) async {
+    final studentDB = await Hive.openBox<StudentModel>('student_db');
+    await studentDB.put(value.id, value);
+    studentList.add(value);
+    getAllStudents();
+    notifyListeners();
+  }
 
-// ValueNotifier<List<StudentModel>> studentListNotifier = ValueNotifier([]);
+  Future<List<StudentModel>> getAllStudents() async {
+    final studentDB = await Hive.openBox<StudentModel>('student_db');
+    studentList.clear();
+    studentList.addAll(studentDB.values);
+    return studentList;
+  }
 
-// Future<void> addStudent(StudentModel value) async {
-//   final studentDB = await Hive.openBox<StudentModel>('student_db');
-//   final ids = await studentDB.add(value);
-//   value.id = ids;
-//   studentListNotifier.value.add(value);
-//   studentListNotifier.notifyListeners();
-//   getAllStudents();
-// }
+  Future<void> deleteStudent(String id) async {
+    final studentDB = await Hive.openBox<StudentModel>('student_db');
+    await studentDB.delete(id);
+    getAllStudents();
+    notifyListeners();
+  }
 
-// Future<void> getAllStudents() async {
-//   final studentDB = await Hive.openBox<StudentModel>('student_db');
-//   studentListNotifier.value.clear();
-//   studentListNotifier.value.addAll(studentDB.values);
-//   studentListNotifier.notifyListeners();
-// }
-
-// Future<void> deleteStudent(index) async {
-//   final studentDB = await Hive.openBox<StudentModel>('student_db');
-//   await studentDB.deleteAt(index);
-//   getAllStudents();
-// }
-
-// Future<void> editStudent(int id, StudentModel value) async {
-//   final dataBaseStudent = await Hive.openBox<StudentModel>('student_db');
-//   dataBaseStudent.putAt(id, value);
-//   getAllStudents();
-// }
+  Future<void> editStudent(int id, StudentModel value) async {
+    final dataBaseStudent = await Hive.openBox<StudentModel>('student_db');
+    dataBaseStudent.putAt(id, value);
+    getAllStudents();
+    notifyListeners();
+  }
+}

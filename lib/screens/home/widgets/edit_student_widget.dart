@@ -1,17 +1,14 @@
+// ignore_for_file: must_be_immutable
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:localacademy/database/functions/db_functons.dart';
 import 'package:localacademy/database/model/student_data_model.dart';
+import 'package:provider/provider.dart';
 
-class EditStudentWidget extends StatefulWidget {
-  final String name;
-  final String age;
-  final String mobileNumber;
-  final String course;
-  final String image;
-  final int index;
-
-  const EditStudentWidget({
+class EditStudentWidget extends StatelessWidget {
+  EditStudentWidget({
     super.key,
     required this.name,
     required this.age,
@@ -20,13 +17,17 @@ class EditStudentWidget extends StatefulWidget {
     required this.image,
     required this.index,
     required String photo,
+    required this.id,
   });
 
-  @override
-  State<EditStudentWidget> createState() => _EditStudentWidgetState();
-}
+  final String name;
+  final String age;
+  final String mobileNumber;
+  final String course;
+  final String image;
+  final int index;
+  final String id;
 
-class _EditStudentWidgetState extends State<EditStudentWidget> {
   TextEditingController _nameEditController = TextEditingController();
   TextEditingController _ageEditController = TextEditingController();
   TextEditingController _mobileNumberEditController = TextEditingController();
@@ -35,17 +36,11 @@ class _EditStudentWidgetState extends State<EditStudentWidget> {
   final _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() {
-    super.initState();
-    _nameEditController = TextEditingController(text: widget.name);
-    _ageEditController = TextEditingController(text: widget.age);
-    _mobileNumberEditController =
-        TextEditingController(text: widget.mobileNumber);
-    _courseEditController = TextEditingController(text: widget.course);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    _nameEditController = TextEditingController(text: name);
+    _ageEditController = TextEditingController(text: age);
+    _mobileNumberEditController = TextEditingController(text: mobileNumber);
+    _courseEditController = TextEditingController(text: course);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Student Info"),
@@ -67,7 +62,7 @@ class _EditStudentWidgetState extends State<EditStudentWidget> {
                     child: CircleAvatar(
                       radius: 125,
                       backgroundImage: FileImage(
-                        File(widget.image),
+                        File(image),
                       ),
                     ),
                   ),
@@ -159,18 +154,21 @@ class _EditStudentWidgetState extends State<EditStudentWidget> {
 
   Future<void> editStudentButtonClick(context) async {
     final studentEdit = StudentModel(
-        name: _nameEditController.text,
-        age: _ageEditController.text,
-        mobileNumber: _mobileNumberEditController.text,
-        course: _courseEditController.text,
-        photo: widget.image);
-    editStudent(widget.index, studentEdit);
+      name: _nameEditController.text,
+      age: _ageEditController.text,
+      mobileNumber: _mobileNumberEditController.text,
+      course: _courseEditController.text,
+      photo: image.toString(),
+      id: id,
+    );
+    Provider.of<DBFunctions>(context, listen: false)
+        .editStudent(index, studentEdit);
+    Provider.of<DBFunctions>(context, listen: false).getAllStudents();
 
     if (_nameEditController.text.isEmpty ||
         _ageEditController.text.isEmpty ||
         _mobileNumberEditController.text.isEmpty ||
-        _courseEditController.text.isEmpty ||
-        widget.image.isEmpty) {
+        _courseEditController.text.isEmpty) {
       return;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
